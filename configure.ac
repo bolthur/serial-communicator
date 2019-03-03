@@ -42,8 +42,7 @@ AC_ARG_ENABLE([opt],
 )
 
 # compile flags
-CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion -Wpacked"
-CFLAGS="${CFLAGS} -Wpacked-bitfield-compat -Wpacked-not-aligned -std=c18"
+CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion -std=c18"
 
 # conftest
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[const char hw[] = "Hello, World\r\n";]])])
