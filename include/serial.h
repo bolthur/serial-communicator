@@ -21,10 +21,16 @@
 #if !defined( SERIAL_H )
 #define SERIAL_H
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #define INVALID_HANDLE -1
 typedef int serial_handle_t;
 
 serial_handle_t serial_open( const char* );
 void serial_close( serial_handle_t );
+ssize_t serial_read( serial_handle_t, void*, size_t );
+ssize_t serial_write( serial_handle_t, void*, size_t );
 
 #endif

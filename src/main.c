@@ -42,11 +42,6 @@ static serial_handle_t handle = 0;
 static uint8_t* file_buffer = NULL;
 
 /**
- * @brief Previous structure
- */
-static struct termios previous;
-
-/**
  * @brief Cleanup method on exit
  */
 void cleanup( void ) {
@@ -56,11 +51,6 @@ void cleanup( void ) {
   // free file buffer if set
   if ( NULL != file_buffer ) {
     free( file_buffer );
-  }
-
-  // restore settings for STDIN_FILENO
-  if ( isatty( STDIN_FILENO ) ) {
-    tcsetattr( STDIN_FILENO, TCSANOW, &previous );
   }
 }
 
@@ -104,33 +94,6 @@ int main( int argc, char** argv ) {
     exit( EXIT_FAILURE );
   }
 
-  // set stdin to non blocking and unbuffered
-  if ( 0 > fcntl( STDIN_FILENO, F_SETFL, O_NONBLOCK ) ) {
-    fprintf( stderr, "Unable to set stdin to non blocking and unbuffered!" );
-    exit( EXIT_FAILURE );
-  }
-
-  // handling if stdin is a tty
-  if ( isatty( STDIN_FILENO ) ) {
-    // get current options
-    if ( 0 > tcgetattr( STDIN_FILENO, &previous ) ) {
-      fprintf( stderr, "Unable to get attributes of current tty!" );
-      exit( EXIT_FAILURE );
-    }
-
-    // get temporary copy
-    struct termios new_termios = previous;
-
-    // disable canonical mode (buffered I/O) and local echo
-    new_termios.c_lflag = ( tcflag_t )( ( int32_t )new_termios.c_lflag & ( ~ICANON & ~ECHO ) );
-
-    // write back changes
-    if ( 0 > tcsetattr( STDIN_FILENO, TCSANOW, &new_termios ) ) {
-      fprintf( stderr, "Unable to write changes for stdin!\r\n" );
-      exit( EXIT_FAILURE );
-    }
-  }
-
   while( ! finished ) {
     // open serial handle
     printf( "Try to open device \"%s\"\r\n", device );
@@ -151,9 +114,33 @@ int main( int argc, char** argv ) {
 
     // progress output
     fprintf( stderr, "Listening on device %s\r\n", device );
+    fprintf( stderr, "Waiting for breaks via device!\r\n" );
+
+    // amount of breaks from serial
+    int32_t breaks_received = 0;
+    while ( 3 > breaks_received ) {
+      // wait for 3 breaks
+      uint8_t buffer;
+      ssize_t bytes_received = serial_read( handle, &buffer, 1 );
+
+      // skip when no bytes have been transmitted
+      if ( 0 >= bytes_received ) {
+        continue;
+      }
+
+      // handle debug break
+      if ( '\x03' == buffer ) {
+        breaks_received++;
+        continue;
+      }
+
+      // else case we received something different
+      breaks_received = 0;
+      fprintf( stderr, "%c", buffer );
+    }
 
     // Send loaded file from buffer
-    printf( "Sending loaded file via serial device!\r\n" );
+    fprintf( stderr, "Sending loaded file via serial device!\r\n" );
 
     // FIXME: Add sending of device and remove set of finished to true
     finished = true;

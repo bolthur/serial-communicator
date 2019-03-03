@@ -106,3 +106,26 @@ void serial_close( serial_handle_t handle ) {
   // close serial port
   close( handle );
 }
+
+/**
+ * @brief Read from serial
+ *
+ * @param handle
+ * @param buffer
+ * @param count
+ */
+ssize_t serial_read( serial_handle_t handle, void* buffer, size_t count ) {
+  return read( handle, buffer, count );
+}
+
+/**
+ * @brief Write to serial
+ *
+ * @param handle
+ * @param buffer
+ * @param count
+ * @return ssize_t
+ */
+ssize_t serial_write( serial_handle_t handle, void* buffer, size_t count ) {
+  return write( handle, buffer, count );
+}
