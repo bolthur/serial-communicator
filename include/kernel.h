@@ -23,6 +23,6 @@
 
 #include <stdint.h>
 
-uint8_t* kernel_load( const char* );
+void kernel_load( const char*, uint8_t**, uint32_t* );
 
 #endif

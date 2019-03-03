@@ -32,7 +32,7 @@
 #include "kernel.h"
 
 /**
- * @brief Serial handle
+ * @brief serial handle
  */
 static serial_handle_t handle = 0;
 
@@ -40,6 +40,11 @@ static serial_handle_t handle = 0;
  * @brief file buffer
  */
 static uint8_t* file_buffer = NULL;
+
+/**
+ * @brief file length
+ */
+static uint32_t file_length = 0;
 
 /**
  * @brief Cleanup method on exit
@@ -89,7 +94,8 @@ int main( int argc, char** argv ) {
 
   // load file to transfer
   printf( "Try to load file \"%s\" for transfer\r\n", file );
-  file_buffer = kernel_load( file );
+  kernel_load( file, &file_buffer, &file_length );
+
   if ( NULL == file_buffer ) {
     exit( EXIT_FAILURE );
   }
@@ -118,10 +124,11 @@ int main( int argc, char** argv ) {
 
     // amount of breaks from serial
     int32_t breaks_received = 0;
+    uint8_t buffer;
+    ssize_t bytes_received;
     while ( 3 > breaks_received ) {
       // wait for 3 breaks
-      uint8_t buffer;
-      ssize_t bytes_received = serial_read( handle, &buffer, 1 );
+      bytes_received = serial_read( handle, &buffer, 1 );
 
       // skip when no bytes have been transmitted
       if ( 0 >= bytes_received ) {
@@ -142,7 +149,15 @@ int main( int argc, char** argv ) {
     // Send loaded file from buffer
     fprintf( stderr, "Sending loaded file via serial device!\r\n" );
 
-    // FIXME: Add sending of device and remove set of finished to true
+    // send start command
+    buffer = '\x02';
+    serial_write( handle, &buffer, 1 );
+
+    // send kernel size in bytes
+    serial_write( handle, &file_length, 4 );
+
+    // send kernel
+    serial_write( handle, file_buffer, file_length );
     finished = true;
   }
 

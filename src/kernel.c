@@ -23,10 +23,9 @@
 #include <stdint.h>
 #include <errno.h>
 
-uint8_t* kernel_load( const char* path ) {
+void kernel_load( const char* path, uint8_t** file_buffer, uint32_t* file_length ) {
   // variables
   FILE *file;
-  uint8_t *buffer;
   int64_t length;
 
   // open file
@@ -34,43 +33,45 @@ uint8_t* kernel_load( const char* path ) {
   // handle error
   if ( NULL == file ) {
     fprintf( stderr, "Unable to open file %s\r\n", path );
-    return NULL;
+    return;
   }
 
   // go to end of file
   if ( 0 != fseek( file, 0, SEEK_END ) ) {
     fprintf( stderr, "Unable to get to file end\r\n" );
     fclose( file );
-    return NULL;
+    return;
   }
   // save length
   length = ftell( file );
   if ( -1L == length ) {
     fprintf( stderr, "Unable to get file length!\r\n" );
     fclose( file );
-    return NULL;
+    return;
   }
   // go to start again
   if ( 0 != fseek( file, 0, SEEK_SET ) ) {
     fprintf( stderr, "Unable to set file pointer back to beginning!\r\n" );
     fclose( file );
-    return NULL;
+    return;
   }
 
   // allocate buffer
-  buffer = ( uint8_t* )malloc( ( uint64_t )length + 1 );
-  if ( NULL == buffer ) {
+  *file_buffer = ( uint8_t* )malloc(
+    sizeof( uint8_t ) * ( ( uint64_t )length + 1 )
+  );
+  if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
     fclose( file );
-    return NULL;
+    return;
   }
 
   // read file into buffer
-  fread( buffer, ( uint64_t )length, 1, file );
+  fread( *file_buffer, ( uint64_t )length, 1, file );
 
   // close file
   fclose( file );
 
-  // return file buffer
-  return buffer;
+  // set length
+  *file_length = ( uint32_t )length;
 }
