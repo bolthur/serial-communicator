@@ -71,6 +71,10 @@ int main( int argc, char** argv ) {
   char *device;
   char *file;
   bool finished = false;
+  ssize_t written;
+  int32_t breaks_received;
+  uint8_t buffer;
+  ssize_t bytes_received;
 
   // initial print of name and version
   printf( "%s %s\r\n", PACKAGE_NAME, PACKAGE_VERSION );
@@ -108,8 +112,8 @@ int main( int argc, char** argv ) {
     // error handling
     if ( INVALID_HANDLE == handle ) {
       // check for errors to skip
-      if ( ENONET == errno || ENODEV == errno || EACCES == errno ) {
-        fprintf( stderr, "\rWaiting for %s to be ready!\r", device );
+      if ( ENOENT == errno || ENODEV == errno || EACCES == errno ) {
+        printf( "\rWaiting for %s to be ready!\r", device );
         sleep( 1 );
         continue;
       }
@@ -119,13 +123,11 @@ int main( int argc, char** argv ) {
     }
 
     // progress output
-    fprintf( stderr, "Listening on device %s\r\n", device );
-    fprintf( stderr, "Waiting for breaks via device!\r\n" );
+    printf( "Listening on device %s\r\n", device );
+    printf( "Waiting for breaks via device!\r\n" );
 
     // amount of breaks from serial
-    int32_t breaks_received = 0;
-    uint8_t buffer;
-    ssize_t bytes_received;
+    breaks_received = 0;
     while ( 3 > breaks_received ) {
       // wait for 3 breaks
       bytes_received = serial_read( handle, &buffer, 1 );
@@ -143,22 +145,33 @@ int main( int argc, char** argv ) {
 
       // else case we received something different
       breaks_received = 0;
-      fprintf( stderr, "%c", buffer );
+      printf( "%c", buffer );
     }
 
     // Send loaded file from buffer
-    fprintf( stderr, "Sending loaded file via serial device!\r\n" );
-
-    // send start command
-    buffer = '\x02';
-    serial_write( handle, &buffer, 1 );
+    printf( "Sending loaded file via serial device!\r\n" );
 
     // send kernel size in bytes
-    serial_write( handle, &file_length, 4 );
+    written = serial_write( handle, &file_length, 4 );
+    printf( "Written bytes for kernel size: %ld\r\n", written );
 
     // send kernel
-    serial_write( handle, file_buffer, file_length );
-    finished = true;
+    written = serial_write( handle, file_buffer, file_length );
+    printf( "Written bytes for kernel: %ld\r\n", written );
+    printf( "buffer length: %d\r\n", file_length );
+
+    // print serial device output
+    while ( true ) {
+      bytes_received = serial_read( handle, &buffer, 1 );
+
+      // skip when no bytes have been transmitted
+      if ( 0 >= bytes_received ) {
+        continue;
+      }
+
+      // print
+      printf( "%c", buffer );
+    }
   }
 
   exit( EXIT_SUCCESS );
