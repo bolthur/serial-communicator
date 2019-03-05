@@ -75,6 +75,9 @@ int main( int argc, char** argv ) {
   int32_t breaks_received;
   uint8_t buffer;
   ssize_t bytes_received;
+  char size_response[ 2 ];
+  int32_t size_received, size_sent;
+  char *p;
 
   // initial print of name and version
   printf( "%s %s\r\n", PACKAGE_NAME, PACKAGE_VERSION );
@@ -155,8 +158,48 @@ int main( int argc, char** argv ) {
     written = serial_write( handle, &file_length, 4 );
     printf( "Written bytes for kernel size: %ld\r\n", written );
 
+    // wait for size response
+    size_received = 0;
+    p = size_response;
+    while ( size_received < 2 ) {
+      // read from port
+      ssize_t len = serial_read( handle, &p[ size_received ], ( size_t )( 2 - size_received ) );
+
+      // handle error
+      if ( -1 == len ) {
+        printf( "Error after reading state from loader!" );
+        exit( EXIT_FAILURE );
+      }
+
+      // increment position
+      size_received += ( int32_t )len;
+    }
+
+    if (
+      'O' != size_response[ 0 ]
+      || 'K' != size_response[ 1 ]
+    ) {
+      printf( "Error received after sending size\r\n" );
+      exit( EXIT_FAILURE );
+    }
+
     // send kernel
-    written = serial_write( handle, file_buffer, file_length );
+    size_sent = ( int32_t )file_length;
+    written = 0;
+    while( size_sent > 0 ) {
+      // write
+      ssize_t len = serial_write( handle, file_buffer, ( size_t )size_sent );
+
+      // handle error
+      if ( -1 == len ) {
+        printf( "Error while sending kernel to loader!" );
+        exit( EXIT_FAILURE );
+      }
+
+      // decrement size and increment written
+      size_sent -= ( int32_t )len;
+      written += len;
+    }
     printf( "Written bytes for kernel: %ld\r\n", written );
     printf( "buffer length: %d\r\n", file_length );
 
