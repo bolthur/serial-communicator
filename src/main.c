@@ -18,6 +18,8 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _DEFAULT_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -27,6 +29,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
+#include <endian.h>
 
 #include "serial.h"
 #include "kernel.h"
@@ -155,7 +158,9 @@ int main( int argc, char** argv ) {
     printf( "Sending loaded file via serial device!\r\n" );
 
     // send kernel size in bytes
-    written = serial_write( handle, &file_length, 4 );
+    uint32_t endian_file_length = htole32( file_length );
+    printf( "%d\t%d\r\n", file_length, endian_file_length );
+    written = serial_write( handle, &endian_file_length, 4 );
     printf( "Written bytes for kernel size: %ld\r\n", written );
 
     // wait for size response
@@ -187,12 +192,41 @@ int main( int argc, char** argv ) {
     size_sent = ( int32_t )file_length;
     written = 0;
     while( size_sent > 0 ) {
+      // progress output
+      printf( "\rprogress: %03d%%", ( uint32_t )( 100.0 / ( double ) file_length * ( double ) written ) );
+
       // write
-      ssize_t len = serial_write( handle, file_buffer, ( size_t )size_sent );
+      ssize_t len = serial_write( handle, &file_buffer[ written ], 4 );
 
       // handle error
       if ( -1 == len ) {
+        break;
         printf( "Error while sending kernel to loader!" );
+        exit( EXIT_FAILURE );
+      }
+
+      // wait for response
+      size_received = 0;
+      p = size_response;
+      while ( size_received < 2 ) {
+        // read from port
+        ssize_t len = serial_read( handle, &p[ size_received ], ( size_t )( 2 - size_received ) );
+
+        // handle error
+        if ( -1 == len ) {
+          printf( "Error after reading state from loader!" );
+          exit( EXIT_FAILURE );
+        }
+
+        // increment position
+        size_received += ( int32_t )len;
+      }
+
+      if (
+        'O' != size_response[ 0 ]
+        || 'K' != size_response[ 1 ]
+      ) {
+        printf( "Error received after sending size\r\n" );
         exit( EXIT_FAILURE );
       }
 
@@ -200,7 +234,7 @@ int main( int argc, char** argv ) {
       size_sent -= ( int32_t )len;
       written += len;
     }
-    printf( "Written bytes for kernel: %ld\r\n", written );
+    printf( "\rprogress: 100%%\r\nWritten bytes for kernel: %ld\r\n", written );
     printf( "buffer length: %d\r\n", file_length );
 
     // print serial device output

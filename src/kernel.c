@@ -58,7 +58,7 @@ void kernel_load( const char* path, uint8_t** file_buffer, uint32_t* file_length
 
   // allocate buffer
   *file_buffer = ( uint8_t* )malloc(
-    sizeof( uint8_t ) * ( ( uint64_t )length + 1 )
+    ( uint64_t )length + 1
   );
   if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
