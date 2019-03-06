@@ -196,7 +196,7 @@ int main( int argc, char** argv ) {
       printf( "\rprogress: %03d%%", ( uint32_t )( 100.0 / ( double ) file_length * ( double ) written ) );
 
       // write
-      ssize_t len = serial_write( handle, &file_buffer[ written ], 4 );
+      ssize_t len = serial_write( handle, &file_buffer[ written ], 250 );
 
       // handle error
       if ( -1 == len ) {
