@@ -18,12 +18,14 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined( KERNEL_H )
-#define KERNEL_H
-
 #include <stdint.h>
+#include "endian_wrapper.h"
 
-extern void kernel_load( const char*, const char*, uint8_t**, uint32_t* );
-extern void kernel_rpi_prepare( uint32_t* file_length );
-
-#endif
+/**
+ * @brief Method to prepare kernel size for raspberry pi
+ *
+ * @param file_length file length to transform
+ */
+void kernel_rpi_prepare( uint32_t* file_length ) {
+  *file_length = htole32( *file_length );
+}

@@ -38,6 +38,9 @@ serial_handle_t serial_open( const char* device ) {
   serial_handle_t handle;
   struct termios option;
 
+  // output
+  printf( "Opening specified device \"%s\"\r\n", device );
+
   // open device
   handle = open( device, O_RDWR | O_NOCTTY | O_NDELAY );
   if ( -1 == handle ) {
