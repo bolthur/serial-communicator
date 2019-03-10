@@ -13,36 +13,8 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_LANG([C])
 
-AC_ARG_ENABLE([opt],
-  AC_HELP_STRING([--disable-opt], [disable code optimization (default: on)]),
-  [case "${enableval}" in
-  no | 0)
-    CFLAGS="${CFLAGS} -O0"
-    ;;
-  1)
-    CFLAGS="${CFLAGS} -O1"
-    ;;
-  2)
-    CFLAGS="${CFLAGS} -O2"
-    ;;
-  3)
-    CFLAGS="${CFLAGS} -O3"
-    ;;
-  s)
-    CFLAGS="${CFLAGS} -Os"
-    ;;
-  g)
-    CFLAGS="${CFLAGS} -Og"
-    ;;
-  *)
-    CFLAGS="${CFLAGS} -O2"
-    ;;
-  esac],
-  [CFLAGS="${CFLAGS} -O2"]
-)
-
 # compile flags
-CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion"
+CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion -O2"
 
 # Detect the target system
 case "${host_os}" in
