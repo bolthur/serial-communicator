@@ -11,6 +11,8 @@ AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([foreign 1.7])
 AC_CONFIG_HEADERS([config.h])
 
+AM_SILENT_RULES([yes])
+
 AC_LANG([C])
 
 # compile flags
