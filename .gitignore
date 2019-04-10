@@ -1,11 +1,8 @@
 
 # ---> Custom
 /build
-config/**/*
-!config/.gitkeep
+/config
 *~
-scripts/**/*
-!scripts/cross-gcc.sh
 
 # ---> Autotools
 # http://www.gnu.org/software/automake

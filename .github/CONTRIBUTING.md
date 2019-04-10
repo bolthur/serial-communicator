@@ -22,11 +22,9 @@ To setup for making changes you'll need to take a few steps, which we've outline
 
 1. Fork repository [bolthur/serial-communicator](https://github.com/bolthur/serial-communicator). If you're not sure how to fork the repository, GitHub has a [guide](https://help.github.com/articles/fork-a-repo/) for the process and checkout the fork.
 
-2. Setup cross compilation environment. Easiest way to achieve that is to execute the shell script `scripts/cross-gcc.sh`. Annotation for mac users, having binutils installed via brew or something else may lead to errors during compilation of cross compiler.
+2. Prepare checkout for compilation by executing the shellscript `autogen.sh`. If already checked out and executed, and some new files have been added to one of the `Makefile.am` files, you have to execute `autoreconf -i`. Both the shell script and the autoreconf have to be executed within project root.
 
-3. Prepare checkout for compilation by executing the shellscript `autogen.sh`. If already checked out and executed, and some new files have been added to one of the `Makefile.am` files, you have to execute `autoreconf -i`. Both the shell script and the autoreconf have to be executed within project root.
-
-4. Create a build directory and execute configure there with necessary parameters.
+3. Create a build directory and execute configure there with necessary parameters.
 
 ### Making a change
 
