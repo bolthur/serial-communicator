@@ -22,7 +22,7 @@ To setup for making changes you'll need to take a few steps, which we've outline
 
 1. Fork repository [bolthur/serial-communicator](https://github.com/bolthur/serial-communicator). If you're not sure how to fork the repository, GitHub has a [guide](https://help.github.com/articles/fork-a-repo/) for the process and checkout the fork.
 
-2. Prepare checkout for compilation by executing the shellscript `autogen.sh`. If already checked out and executed, and some new files have been added to one of the `Makefile.am` files, you have to execute `autoreconf -i`. Both the shell script and the autoreconf have to be executed within project root.
+2. Prepare checkout for compilation by executing command `autoreconf -if` within checkout. If already checked out and executed, and some new files have been added to one of the `Makefile.am` files, you have to execute `autoreconf -i`. Both the shell script and the autoreconf have to be executed within project root.
 
 3. Create a build directory and execute configure there with necessary parameters.
 
