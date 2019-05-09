@@ -3,13 +3,12 @@ AC_PREREQ(2.57)
 AC_INIT([bolthur-serial-communicator], [0.1], [https://github.com/bolthur/serial-communicator/issues], [bolthur-serial-communicator], [https://github.com/bolthur/serial-communicator])
 AC_COPYRIGHT([Copyright (C) 2019 bolthur project])
 
-AC_CONFIG_SRCDIR([main.c])
 AC_CONFIG_AUX_DIR([config])
 
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([foreign 1.7])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([include/config.h])
 
 AM_SILENT_RULES([yes])
 
