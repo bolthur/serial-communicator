@@ -35,7 +35,7 @@ const struct {
 };
 
 /**
- * @brief Internal method calling vendor specific prepare
+ * @brief Internal method calling platform specific prepare
  *
  * @param machine
  * @param file_length

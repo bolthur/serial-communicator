@@ -7,10 +7,10 @@ AC_CONFIG_AUX_DIR([config])
 
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.c])
-AM_INIT_AUTOMAKE([foreign 1.7])
+AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADERS([include/config.h])
 
-AM_SILENT_RULES([yes])
+#AM_SILENT_RULES([yes])
 
 AC_LANG([C])
 
