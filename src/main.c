@@ -27,9 +27,21 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
+#include <getopt.h>
 
 #include "serial.h"
 #include "kernel.h"
+#include "initrd.h"
+
+typedef struct {
+  const char* name;
+  char* data;
+} argument_data_t;
+
+#define INDEX_TARGET 0
+#define INDEX_DEVICE 1
+#define INDEX_KERNEL 2
+#define INDEX_INITRD 3
 
 #define SEND_AMOUNT_ONCE 250
 
@@ -47,6 +59,16 @@ static uint8_t* file_buffer = NULL;
  * @brief file length
  */
 static uint32_t file_length = 0;
+
+/**
+ * @brief argument data
+ */
+static argument_data_t argument[] = {
+  { "target", NULL },
+  { "device", NULL },
+  { "kernel", NULL },
+  { "initrd", NULL }
+};
 
 /**
  * @brief Cleanup method on exit
@@ -133,20 +155,71 @@ static void wait_for_response( void ) {
 }
 
 /**
+ * @brief Helper to print usage
+ *
+ * @param name program name
+ */
+static void print_usage( const char* name ) {
+  // print example and usage
+  printf(
+    "Usage: %s --target <target> --device <device> --kernel <kernel> [--initrd <initrd>]\r\n",
+    name
+  );
+  printf(
+    "Example: %s --target rpi --device /dev/ttyUSB0 --kernel kernel.img\r\n",
+    name
+  );
+  exit( EXIT_FAILURE );
+}
+
+/**
  * @brief Validate received parameter
  *
  * @param argc
  * @param argv
  */
 static void validate_parameter( int argc, char** argv ) {
-  // handle not enough parameter
-  if ( 4 != argc ) {
-    // print example and usage
-    printf( "Usage: %s <target> <device> <file>\r\n", argv[ 0 ] );
-    printf( "Example: %s rpi /dev/ttyUSB0 kernel.img\r\n", argv[ 0 ] );
+  struct option long_option[] = {
+    { "target", required_argument, 0, 't' },
+    { "device", required_argument, 0, 'd' },
+    { "kernel", required_argument, 0, 'k' },
+    { "initrd", required_argument, 0, 'i' },
+    { 0, 0, 0, 0 }
+  };
 
-    // exit with error
-    exit( EXIT_FAILURE );
+  int opt, long_index, idx;
+
+  while ( -1 != ( opt = getopt_long( argc, argv, "t:d:k:i:", long_option, &long_index ) ) ) {
+    switch ( opt ) {
+      case 't':
+        idx = INDEX_TARGET;
+        break;
+      case 'd':
+        idx = INDEX_DEVICE;
+        break;
+      case 'k':
+        idx = INDEX_KERNEL;
+        break;
+      case 'i':
+        idx = INDEX_INITRD;
+        break;
+      default:
+        printf( "%c", opt );
+        print_usage( argv[ 0 ] );
+        // idx = -1;
+    }
+
+    // push back option
+    argument[ idx ].data = optarg;
+  }
+
+  // handle missing necessary data
+  if (
+    NULL == argument[ INDEX_TARGET ].data
+    || NULL == argument[ INDEX_DEVICE ].data
+    || NULL == argument[ INDEX_KERNEL ].data
+  ) {
+    print_usage( argv[ 0 ] );
   }
 }
 
@@ -158,7 +231,7 @@ static void validate_parameter( int argc, char** argv ) {
  * @return int
  */
 int main( int argc, char** argv ) {
-  char *device, *file, *target;
+  char *device, *kernel, *target, *initrd;
   bool finished = false;
   ssize_t written, bytes_received, written_kernel_amount;
   uint8_t buffer;
@@ -172,15 +245,26 @@ int main( int argc, char** argv ) {
   atexit( cleanup );
 
   // save device and file
-  target = argv[ 1 ];
-  device = argv[ 2 ];
-  file = argv[ 3 ];
+  target = argument[ INDEX_TARGET ].data;
+  device = argument[ INDEX_DEVICE ].data;
+  kernel = argument[ INDEX_KERNEL ].data;
+  initrd = argument[ INDEX_INITRD ].data;
 
   // load file to transfer
-  kernel_load( target, file, &file_buffer, &file_length );
+  kernel_load( target, kernel, &file_buffer, &file_length );
   // handle error
   if ( NULL == file_buffer ) {
     exit( EXIT_FAILURE );
+  }
+
+  // handle initrd
+  if ( NULL != initrd ) {
+    // load initrd
+    initrd_load( initrd, &file_buffer, &file_length );
+    // handle error
+    if ( NULL == file_buffer ) {
+      exit( EXIT_FAILURE );
+    }
   }
 
   while( ! finished ) {
