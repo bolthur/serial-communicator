@@ -15,7 +15,9 @@
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""
       },
-      "macFrameworkPath": [],
+      "macFrameworkPath": [
+        "/System/Library/Frameworks"
+      ],
       "forcedInclude": [
         "${workspaceFolder}/build/include/config.h"
       ],

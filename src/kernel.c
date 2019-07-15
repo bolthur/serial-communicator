@@ -111,9 +111,7 @@ void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, 
   }
 
   // allocate buffer
-  *file_buffer = ( uint8_t* )malloc(
-    ( uint64_t )length + 1
-  );
+  *file_buffer = ( uint8_t* )malloc( ( size_t )length + 1 );
   if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
     fclose( file );
@@ -121,7 +119,7 @@ void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, 
   }
 
   // read file into buffer
-  fread( *file_buffer, ( uint64_t )length, 1, file );
+  fread( *file_buffer, ( size_t )length, 1, file );
 
   // close file
   fclose( file );

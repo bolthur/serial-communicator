@@ -74,7 +74,7 @@ void initrd_load( const char* path, uint8_t** file_buffer, uint32_t* file_length
   // allocate buffer
   *file_buffer = ( uint8_t* )realloc(
     *file_buffer,
-    *file_length + ( uint64_t )length + 1
+    ( size_t )( *file_length + ( uint64_t )length + 1 )
   );
   if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
@@ -83,7 +83,7 @@ void initrd_load( const char* path, uint8_t** file_buffer, uint32_t* file_length
   }
 
   // read file into buffer
-  fread( *file_buffer + *file_length, ( uint64_t )length, 1, file );
+  fread( *file_buffer + *file_length, ( size_t )length, 1, file );
 
   // close file
   fclose( file );

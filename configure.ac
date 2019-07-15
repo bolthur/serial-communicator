@@ -18,18 +18,7 @@ AC_LANG([C])
 # compile flags
 CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion -O2"
 
-# Detect the target system
-case "${host_os}" in
-  linux*)
-    CFLAGS="${CFLAGS} -std=c18"
-    ;;
-  darwin*)
-    CFLAGS="${CFLAGS} -std=c17"
-    ;;
-  *)
-    AC_MSG_ERROR(["OS $host_os is not supported"])
-    ;;
-esac
+COMMUNICATOR_SET_HOST
 
 # conftest
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[const char hw[] = "Hello, World\r\n";]])])
