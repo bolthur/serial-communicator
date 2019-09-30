@@ -18,12 +18,16 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined( INITRD_H )
-#define INITRD_H
-
 #include <stdint.h>
+#include "endian_wrapper.h"
 
-extern void initrd_load( const char*, const char*, uint8_t**, uint32_t*, uint32_t* );
-extern void initrd_rpi_prepare( uint32_t*, uint32_t* );
-
-#endif
+/**
+ * @brief Method to prepare initrd for raspberry pi
+ *
+ * @param file_length
+ * @param type to prepare
+ */
+void initrd_rpi_prepare(uint32_t* file_length, uint32_t* type ) {
+  *file_length = htole32( *file_length );
+  *type = htole32( *type );
+}

@@ -52,12 +52,22 @@ static serial_handle_t handle = 0;
 /**
  * @brief file buffer
  */
-static uint8_t* file_buffer = NULL;
+static uint8_t* kernel_buffer = NULL;
 
 /**
  * @brief file length
  */
-static uint32_t file_length = 0;
+static uint32_t kernel_length = 0;
+
+/**
+ * @brief file buffer
+ */
+static uint8_t* initrd_buffer = NULL;
+
+/**
+ * @brief file length
+ */
+static uint32_t initrd_length = 0;
 
 /**
  * @brief argument data
@@ -77,8 +87,11 @@ static void cleanup( void ) {
   serial_close( handle );
 
   // free file buffer if set
-  if ( NULL != file_buffer ) {
-    free( file_buffer );
+  if ( NULL != kernel_buffer ) {
+    free( kernel_buffer );
+  }
+  if ( NULL != initrd_buffer ) {
+    free( initrd_buffer );
   }
 }
 
@@ -232,9 +245,10 @@ static void validate_parameter( int argc, char** argv ) {
 int main( int argc, char** argv ) {
   char *device, *kernel, *target, *initrd;
   bool finished = false;
-  ssize_t written, bytes_received, written_kernel_amount;
+  ssize_t written, bytes_received, written_kernel_amount, written_initrd_amount;
   uint8_t buffer;
   int32_t remaining_size;
+  uint32_t kernel_type, initrd_type;
 
   // initial print of name and version
   printf( "%s %s\r\n", PACKAGE_NAME, PACKAGE_VERSION );
@@ -250,18 +264,18 @@ int main( int argc, char** argv ) {
   initrd = argument[ INDEX_INITRD ].data;
 
   // load file to transfer
-  kernel_load( target, kernel, &file_buffer, &file_length );
+  kernel_load( target, kernel, &kernel_buffer, &kernel_length, &kernel_type );
   // handle error
-  if ( NULL == file_buffer ) {
+  if ( NULL == kernel_buffer ) {
     exit( EXIT_FAILURE );
   }
 
   // handle initrd
   if ( NULL != initrd ) {
     // load initrd
-    initrd_load( initrd, &file_buffer, &file_length );
+    initrd_load( target, initrd, &initrd_buffer, &initrd_length, &initrd_type );
     // handle error
-    if ( NULL == file_buffer ) {
+    if ( NULL == initrd_buffer ) {
       exit( EXIT_FAILURE );
     }
   }
@@ -285,20 +299,28 @@ int main( int argc, char** argv ) {
     // wait for breaks from device
     wait_for_break();
 
+    // send type kernel
+    printf( "Sending type kernel (%d) to loader!\r\n", kernel_type );
+    written = serial_write( handle, &kernel_type, 4 );
+
+    // wait for ok response from loader
+    wait_for_response();
+
     // send kernel size in bytes
-    printf( "Sending file size to loader!\r\n" );
-    written = serial_write( handle, &file_length, 4 );
+    printf( "Sending kernel file size ( %d ) to loader!\r\n", kernel_length );
+    written = serial_write( handle, &kernel_length, 4 );
 
     // wait for ok response from loader
     wait_for_response();
 
     // send kernel
-    remaining_size = ( int32_t )file_length;
+    printf( "Sending kernel to loader!\r\n" );
+    remaining_size = ( int32_t )kernel_length;
     written = 0;
     while( remaining_size > 0 ) {
       // write buffer
       written_kernel_amount = serial_write(
-        handle, &file_buffer[ written ],
+        handle, &kernel_buffer[ written ],
         SEND_AMOUNT_ONCE > remaining_size
           ? ( size_t )remaining_size
           : SEND_AMOUNT_ONCE
@@ -316,6 +338,60 @@ int main( int argc, char** argv ) {
 
       // wait for ok response from loader
       wait_for_response();
+    }
+
+    if ( NULL != initrd ) {
+      // send type initrd
+      printf( "Sending type initrd ( %d ) to loader!\r\n", initrd_type );
+      written = serial_write( handle, &initrd_type, 4 );
+
+      // wait for ok response from loader
+      wait_for_response();
+
+      // send kernel size in bytes
+      printf( "Sending initrd file size to loader( %d )!\r\n", initrd_length );
+      written = serial_write( handle, &initrd_length, 4 );
+
+      // wait for ok response from loader
+      wait_for_response();
+
+      // send initrd
+      printf( "Sending initrd to loader!\r\n" );
+      remaining_size = ( int32_t )initrd_length;
+      written = 0;
+      while( remaining_size > 0 ) {
+        // write buffer
+        written_initrd_amount = serial_write(
+          handle, &initrd_buffer[ written ],
+          SEND_AMOUNT_ONCE > remaining_size
+            ? ( size_t )remaining_size
+            : SEND_AMOUNT_ONCE
+        );
+
+        // handle error
+        if ( -1 == written_initrd_amount ) {
+          printf( "Error while sending kernel to loader!" );
+          exit( EXIT_FAILURE );
+        }
+
+        // decrement size and increment written
+        remaining_size -= ( int32_t )written_initrd_amount;
+        written += written_initrd_amount;
+
+        // wait for ok response from loader
+        wait_for_response();
+      }
+    }
+
+    printf( "Sending go command to start booting!\r\n" );
+    // send go
+    char go_command[ 2 ] = { "GO" };
+    // send command
+    written = serial_write( handle, go_command, 2 );
+    // handle error
+    if ( -1 == written_initrd_amount ) {
+      printf( "Error while sending kernel to loader!" );
+      exit( EXIT_FAILURE );
     }
 
     // print serial device output

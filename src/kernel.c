@@ -26,10 +26,11 @@
 #include <stdbool.h>
 
 #include "kernel.h"
+#include "type.h"
 
 const struct {
   const char* name;
-  void ( *callback )( uint32_t* );
+  void ( *callback )( uint32_t*, uint32_t* );
 } kernel_lookup_table[] = {
   { "kernel_rpi_prepare", &kernel_rpi_prepare },
 };
@@ -39,8 +40,9 @@ const struct {
  *
  * @param machine
  * @param file_length
+ * @param type
  */
-static void kernel_perpare( const char* machine, uint32_t* file_length ) {
+static void kernel_perpare( const char* machine, uint32_t* file_length, uint32_t* type ) {
   char name[ 80 ];
 
   // build prepare function name
@@ -62,7 +64,7 @@ static void kernel_perpare( const char* machine, uint32_t* file_length ) {
     }
 
     // execute callback
-    kernel_lookup_table[ i ].callback( file_length );
+    kernel_lookup_table[ i ].callback( file_length, type );
   }
 }
 
@@ -73,8 +75,9 @@ static void kernel_perpare( const char* machine, uint32_t* file_length ) {
  * @param path
  * @param file_buffer
  * @param file_length
+ * @param type
  */
-void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, uint32_t* file_length ) {
+void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, uint32_t* file_length, uint32_t* type ) {
   // variables
   FILE *file;
   int64_t length;
@@ -126,7 +129,8 @@ void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, 
 
   // set length
   *file_length = ( uint32_t )length;
+  *type = TYPE_KERNEL;
 
   // execute further prepare
-  kernel_perpare( machine, file_length );
+  kernel_perpare( machine, file_length, type );
 }

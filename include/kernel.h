@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-extern void kernel_load( const char*, const char*, uint8_t**, uint32_t* );
-extern void kernel_rpi_prepare( uint32_t* file_length );
+extern void kernel_load( const char*, const char*, uint8_t**, uint32_t*, uint32_t* );
+extern void kernel_rpi_prepare( uint32_t*, uint32_t* );
 
 #endif

@@ -25,7 +25,49 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#include "kernel.h"
+#include "initrd.h"
+#include "type.h"
+
+const struct {
+  const char* name;
+  void ( *callback )( uint32_t*, uint32_t* );
+} initrd_lookup_table[] = {
+  { "initrd_initrd_prepare", &initrd_rpi_prepare },
+};
+
+/**
+ * @brief Internal method calling platform specific prepare
+ *
+ * @param machine
+ * @param file_length
+ * @param type
+ */
+static void initrd_prepare( const char* machine, uint32_t* file_length, uint32_t* type ) {
+  char name[ 80 ];
+
+  // build prepare function name
+  strcpy( name, "initrd_" );
+  strcat( name, machine );
+  strcat( name, "_prepare" );
+
+  for (
+    uint32_t i = 0;
+    i < ( sizeof( initrd_lookup_table ) / sizeof( initrd_lookup_table[ 0 ] ) );
+    i++
+  ) {
+    // skip non matching callbacks or entries without valid callback
+    if (
+      0 != strcmp( initrd_lookup_table[ i ].name, name )
+      || ! initrd_lookup_table[ i ].callback
+    ) {
+      continue;
+    }
+
+    // execute callback
+    initrd_lookup_table[ i ].callback( file_length, type );
+  }
+}
+
 
 /**
  * @brief Method for loading initial ramdisk
@@ -34,8 +76,9 @@
  * @param path
  * @param file_buffer
  * @param file_length
+ * @param type
  */
-void initrd_load( const char* path, uint8_t** file_buffer, uint32_t* file_length ) {
+void initrd_load( const char* machine, const char* path, uint8_t** file_buffer, uint32_t* file_length, uint32_t* type ) {
   // variables
   FILE *file;
   int64_t length;
@@ -72,10 +115,7 @@ void initrd_load( const char* path, uint8_t** file_buffer, uint32_t* file_length
   }
 
   // allocate buffer
-  *file_buffer = ( uint8_t* )realloc(
-    *file_buffer,
-    ( size_t )( *file_length + ( uint64_t )length + 1 )
-  );
+  *file_buffer = ( uint8_t* )malloc( ( size_t )( length + 1 ) );
   if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
     fclose( file );
@@ -83,11 +123,14 @@ void initrd_load( const char* path, uint8_t** file_buffer, uint32_t* file_length
   }
 
   // read file into buffer
-  fread( *file_buffer + *file_length, ( size_t )length, 1, file );
+  fread( *file_buffer, ( size_t )length, 1, file );
 
   // close file
   fclose( file );
 
   // set length
-  *file_length += ( uint32_t )length;
+  *file_length = ( uint32_t )length;
+  *type = TYPE_INITRD;
+
+  initrd_prepare( machine, file_length, type );
 }

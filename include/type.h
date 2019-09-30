@@ -18,12 +18,10 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined( INITRD_H )
-#define INITRD_H
+#if !defined( TYPE_H )
+#define TYPE_H
 
-#include <stdint.h>
-
-extern void initrd_load( const char*, const char*, uint8_t**, uint32_t*, uint32_t* );
-extern void initrd_rpi_prepare( uint32_t*, uint32_t* );
+#define TYPE_KERNEL 1
+#define TYPE_INITRD 2
 
 #endif
