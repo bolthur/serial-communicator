@@ -1,5 +1,5 @@
 
-AC_DEFUN([COMMUNICATOR_SET_HOST], [
+AC_DEFUN([BOLTHUR_SERIAL_COMMUNICATOR_SET_HOST], [
   # define templates
   AH_TEMPLATE([LINUX], [Linux build define])
   AH_TEMPLATE([WINDOWS], [Windows build define])

@@ -340,6 +340,7 @@ int main( int argc, char** argv ) {
       wait_for_response();
     }
 
+    // handle initrd
     if ( NULL != initrd ) {
       // send type initrd
       printf( "Sending type initrd ( %d ) to loader!\r\n", initrd_type );
@@ -389,8 +390,8 @@ int main( int argc, char** argv ) {
     // send command
     written = serial_write( handle, go_command, 2 );
     // handle error
-    if ( -1 == written_initrd_amount ) {
-      printf( "Error while sending kernel to loader!" );
+    if ( -1 == written ) {
+      printf( "Error while sending command \"go\" loader!" );
       exit( EXIT_FAILURE );
     }
 

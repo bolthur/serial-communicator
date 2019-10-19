@@ -11,14 +11,11 @@ AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE()
 AC_CONFIG_HEADERS([include/config.h])
 
-#AM_SILENT_RULES([yes])
-
 AC_LANG([C])
 
-# compile flags
-CFLAGS="${CFLAGS} -Wall -Wextra -Werror -Wpedantic -Wconversion -O2"
-
-COMMUNICATOR_SET_HOST
+# Set flag and host
+BOLTHUR_SERIAL_COMMUNICATOR_SET_FLAG
+BOLTHUR_SERIAL_COMMUNICATOR_SET_HOST
 
 # conftest
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[const char hw[] = "Hello, World\r\n";]])])
