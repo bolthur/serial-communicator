@@ -1,7 +1,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT([bolthur-serial-communicator], [0.1], [https://github.com/bolthur/serial-communicator/issues], [bolthur-serial-communicator], [https://github.com/bolthur/serial-communicator])
-AC_COPYRIGHT([Copyright (C) 2019 bolthur project])
+AC_COPYRIGHT([Copyright (C) 2019 - 2020 bolthur project])
 
 AC_CONFIG_AUX_DIR([build-aux/config])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
