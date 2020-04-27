@@ -1,6 +1,6 @@
 
 /**
- * Copyright (C) 2019 bolthur project.
+ * Copyright (C) 2019 - 2020 bolthur project.
  *
  * This file is part of bolthur/serial-communicator.
  *
@@ -18,14 +18,12 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
-#include "endian_wrapper.h"
+#if !defined( INITRD_H )
+#define INITRD_H
 
-/**
- * @brief Method to prepare kernel size for raspberry pi
- *
- * @param file_length file length to transform
- */
-void kernel_rpi_prepare( uint32_t* file_length ) {
-  *file_length = htole32( *file_length );
-}
+#include <stdint.h>
+
+extern void initrd_load( const char*, const char*, uint8_t**, uint32_t*, uint32_t* );
+extern void initrd_rpi_prepare( uint32_t*, uint32_t* );
+
+#endif

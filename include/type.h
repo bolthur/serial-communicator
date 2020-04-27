@@ -18,12 +18,10 @@
  * along with bolthur/serial-communicator.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !defined( KERNEL_H )
-#define KERNEL_H
+#if !defined( TYPE_H )
+#define TYPE_H
 
-#include <stdint.h>
-
-extern void kernel_load( const char*, const char*, uint8_t**, uint32_t*, uint32_t* );
-extern void kernel_rpi_prepare( uint32_t*, uint32_t* );
+#define TYPE_KERNEL 1
+#define TYPE_INITRD 2
 
 #endif

@@ -25,14 +25,14 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#include "kernel.h"
+#include "initrd.h"
 #include "type.h"
 
 const struct {
   const char* name;
   void ( *callback )( uint32_t*, uint32_t* );
-} kernel_lookup_table[] = {
-  { "kernel_rpi_prepare", &kernel_rpi_prepare },
+} initrd_lookup_table[] = {
+  { "initrd_initrd_prepare", &initrd_rpi_prepare },
 };
 
 /**
@@ -42,34 +42,35 @@ const struct {
  * @param file_length
  * @param type
  */
-static void kernel_perpare( const char* machine, uint32_t* file_length, uint32_t* type ) {
+static void initrd_prepare( const char* machine, uint32_t* file_length, uint32_t* type ) {
   char name[ 80 ];
 
   // build prepare function name
-  strcpy( name, "kernel_" );
+  strcpy( name, "initrd_" );
   strcat( name, machine );
   strcat( name, "_prepare" );
 
   for (
     uint32_t i = 0;
-    i < ( sizeof( kernel_lookup_table ) / sizeof( kernel_lookup_table[ 0 ] ) );
+    i < ( sizeof( initrd_lookup_table ) / sizeof( initrd_lookup_table[ 0 ] ) );
     i++
   ) {
     // skip non matching callbacks or entries without valid callback
     if (
-      0 != strcmp( kernel_lookup_table[ i ].name, name )
-      || ! kernel_lookup_table[ i ].callback
+      0 != strcmp( initrd_lookup_table[ i ].name, name )
+      || ! initrd_lookup_table[ i ].callback
     ) {
       continue;
     }
 
     // execute callback
-    kernel_lookup_table[ i ].callback( file_length, type );
+    initrd_lookup_table[ i ].callback( file_length, type );
   }
 }
 
+
 /**
- * @brief Method for loading kernel
+ * @brief Method for loading initial ramdisk
  *
  * @param machine
  * @param path
@@ -77,13 +78,13 @@ static void kernel_perpare( const char* machine, uint32_t* file_length, uint32_t
  * @param file_length
  * @param type
  */
-void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, uint32_t* file_length, uint32_t* type ) {
+void initrd_load( const char* machine, const char* path, uint8_t** file_buffer, uint32_t* file_length, uint32_t* type ) {
   // variables
   FILE *file;
   int64_t length;
 
   // some output
-  printf( "Loading file \"%s\" for transfer\r\n", path );
+  printf( "Appending \"%s\" to kernel for transfer\r\n", path );
 
   // open file
   file = fopen( path, "rb" );
@@ -114,7 +115,7 @@ void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, 
   }
 
   // allocate buffer
-  *file_buffer = ( uint8_t* )malloc( ( size_t )length + 1 );
+  *file_buffer = ( uint8_t* )malloc( ( size_t )( length + 1 ) );
   if ( NULL == *file_buffer ) {
     fprintf( stderr, "Unable to allocate file buffer!\r\n" );
     fclose( file );
@@ -129,8 +130,7 @@ void kernel_load( const char* machine, const char* path, uint8_t** file_buffer, 
 
   // set length
   *file_length = ( uint32_t )length;
-  *type = TYPE_KERNEL;
+  *type = TYPE_INITRD;
 
-  // execute further prepare
-  kernel_perpare( machine, file_length, type );
+  initrd_prepare( machine, file_length, type );
 }

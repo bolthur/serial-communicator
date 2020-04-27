@@ -1,6 +1,6 @@
 
 /**
- * Copyright (C) 2019 bolthur project.
+ * Copyright (C) 2019 - 2020 bolthur project.
  *
  * This file is part of bolthur/serial-communicator.
  *
@@ -25,8 +25,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define INVALID_HANDLE -1
-typedef int serial_handle_t;
+#if defined( WINDOWS )
+  #include <windows.h>
+  typedef HANDLE serial_handle_t;
+  #define INVALID_HANDLE INVALID_HANDLE_VALUE
+#else
+  typedef int serial_handle_t;
+  #define INVALID_HANDLE -1
+#endif
+
 
 serial_handle_t serial_open( const char* );
 void serial_close( serial_handle_t );

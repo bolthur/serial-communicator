@@ -1,6 +1,6 @@
 
 /**
- * Copyright (C) 2019 bolthur project.
+ * Copyright (C) 2019 - 2020 bolthur project.
  *
  * This file is part of bolthur/serial-communicator.
  *
@@ -20,7 +20,7 @@
 
 #if !defined( ENDIAN_WRAPPER_H )
 #define ENDIAN_WRAPPER_H
-  #if defined( __APPLE__ )
+  #if defined( OSX )
     #include <libkern/OSByteOrder.h>
 
     #define htobe16(x) OSSwapHostToBigInt16(x)
@@ -37,6 +37,23 @@
     #define htole64(x) OSSwapHostToLittleInt64(x)
     #define be64toh(x) OSSwapBigToHostInt64(x)
     #define le64toh(x) OSSwapLittleToHostInt64(x)
+  #elif defined( WINDOWS )
+    #include <windows.h>
+
+    #define htobe16(x) __builtin_bswap16(x)
+    #define htole16(x) (x)
+    #define be16toh(x) __builtin_bswap16(x)
+    #define le16toh(x) (x)
+
+    #define htobe32(x) __builtin_bswap32(x)
+    #define htole32(x) (x)
+    #define be32toh(x) __builtin_bswap32(x)
+    #define le32toh(x) (x)
+
+    #define htobe64(x) __builtin_bswap64(x)
+    #define htole64(x) (x)
+    #define be64toh(x) __builtin_bswap64(x)
+    #define le64toh(x) (x)
   #else
     #define __USE_MISC
     #include <endian.h>
